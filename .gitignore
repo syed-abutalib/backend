@@ -1,3 +1,5 @@
 node_modules
 .env
 npm-debug.log
+git mv src/services/EmailService.js src/services/temp.js
+git mv src/services/temp.js src/services/EmailService.js
