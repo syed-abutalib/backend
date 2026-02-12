@@ -4,6 +4,7 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import BlogCategoryRoutes from "./routes/blogCategoryRoutes.js";
 import Blog from "./routes/BlogRoutes.js";
+import sitemapRoutes from "./routes/sitemap.js";
 import adminDashboardRoutes from "./routes/adminDashboardRoutes.js";
 import newsletterRoutes from "./routes/newsletter.js";
 import contactRoutes from "./routes/contact.js";
@@ -27,6 +28,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/blog-categories", BlogCategoryRoutes);
 app.use("/api/blogs", Blog);
+app.use("/", sitemapRoutes);
 
 app.use("/api/admin", adminDashboardRoutes);
 app.use("/api/newsletter", newsletterRoutes);
