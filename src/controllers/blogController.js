@@ -116,7 +116,6 @@ export const createBlog = async (req, res) => {
     // If admin creates, set approved time
     if (userRole === "admin") {
       blogData.approvedAt = new Date();
-      await generateAndUploadSitemap();
     }
 
     // Calculate read time
@@ -143,6 +142,7 @@ export const createBlog = async (req, res) => {
 
     const blog = new Blog(blogData);
     await blog.save();
+    await generateAndUploadSitemap();
 
     // Populate references
     await blog.populate([
@@ -677,7 +677,8 @@ export const updateBlog = async (req, res) => {
 
     console.log("Saving blog...");
     await blog.save();
-
+    await generateAndUploadSitemap();
+    
     console.log("After save - blog.createdAt:", blog.createdAt);
 
     // Re-populate references
@@ -918,6 +919,8 @@ export const updateUserBlog = async (req, res) => {
       { path: "category", select: "name slug" },
       { path: "user", select: "name email" },
     ]);
+    
+    await generateAndUploadSitemap();
 
     res.status(200).json({
       success: true,
@@ -973,6 +976,7 @@ export const deleteBlog = async (req, res) => {
     }
 
     await blog.deleteOne();
+    await generateAndUploadSitemap();
 
     return res.status(200).json({
       success: true,
@@ -1424,6 +1428,7 @@ export const adminDeleteBlog = async (req, res) => {
 
     // Hard delete
     await blog.deleteOne();
+    await generateAndUploadSitemap();
 
     res.status(200).json({
       success: true,
@@ -1602,6 +1607,7 @@ export const adminUpdateBlog = async (req, res) => {
       { path: "category", select: "name slug" },
       { path: "user", select: "name email role" },
     ]);
+     await generateAndUploadSitemap();
 
     res.status(200).json({
       success: true,
