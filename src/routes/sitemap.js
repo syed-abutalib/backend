@@ -106,7 +106,7 @@ router.get("/sitemap.xml", async (req, res) => {
 
     xml += `</urlset>`;
 
-    res.header("Content-Type", "application/xml");
+    res.set("Content-Type", "application/xml");
     res.send(xml);
   } catch (error) {
     res.status(500).send("Error generating sitemap");
@@ -114,3 +114,4 @@ router.get("/sitemap.xml", async (req, res) => {
 });
 
 export default router;
+
