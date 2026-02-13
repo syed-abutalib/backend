@@ -1,6 +1,6 @@
 import express from "express";
 import { body, validationResult } from "express-validator";
-import { sendContactEmail } from "../services/emailService.js";
+import { sendContactEmail } from "../services/Emailservice.js";
 const router = express.Router();
 // Validation middleware
 const validateContactForm = [

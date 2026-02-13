@@ -4,6 +4,7 @@ import {
   uploadToCloudinary,
   deleteFromCloudinary,
 } from "../config/cloudinary.js";
+import { generateAndUploadSitemap } from "../utils/sitemapGenerator.js";
 
 // ================ HELPER FUNCTIONS ================
 
@@ -115,6 +116,7 @@ export const createBlog = async (req, res) => {
     // If admin creates, set approved time
     if (userRole === "admin") {
       blogData.approvedAt = new Date();
+      await generateAndUploadSitemap();
     }
 
     // Calculate read time

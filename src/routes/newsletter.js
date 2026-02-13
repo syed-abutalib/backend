@@ -1,6 +1,6 @@
 import express from "express";
 import { body, validationResult } from "express-validator";
-import { sendAdminNewSubscriberNotification, sendNewsletterWelcome } from "../services/emailService.js";
+import { sendAdminNewSubscriberNotification, sendNewsletterWelcome } from "../services/Emailservice.js";
 const router = express.Router();
 
 // Mock database (replace with real database)
