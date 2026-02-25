@@ -22,6 +22,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(express.static("uploads"));
 
+app.use((req, res, next) => {
+  res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  next();
+});
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/blog-categories", BlogCategoryRoutes);
