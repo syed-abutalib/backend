@@ -20,6 +20,7 @@ app.set("etag", false);
 app.use(
   cors({
     origin: "", // frontend domain
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true, // if you want cookies/auth
   })
 );
