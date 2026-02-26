@@ -19,7 +19,13 @@ app.use(
   cors({
     origin: "https://dailyworldblog.com",
     credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Cache-Control",   // ✅ ADD THIS
+      "Pragma",          // optional (sometimes sent)
+      "Expires",         // optional
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );
