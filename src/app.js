@@ -16,15 +16,29 @@ app.use(helmet());
 app.use(morgan("dev"));
 app.set("etag", false);
 
-// Updated CORS
+const allowedOrigins = [
+  "https://dailyworldblog.com",
+  "https://www.dailyworldblog.com",
+  "https://gray-goldfinch-802005.hostingersite.com"
+];
+
 app.use(
   cors({
-    origin: "*", // frontend domain
+    origin: function (origin, callback) {
+      // allow requests with no origin (like mobile apps, curl)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS not allowed"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true, // if you want cookies/auth
   })
 );
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
