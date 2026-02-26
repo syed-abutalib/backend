@@ -15,31 +15,14 @@ const app = express();
 app.use(helmet());
 app.use(morgan("dev"));
 app.set("etag", false);
-const allowedOrigins = [
-  "https://dailyworldblog.com",
-  "https://gray-goldfinch-802005.hostingersite.com",
-];
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // allow non-browser requests (Postman, curl)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS: " + origin));
-      }
-    },
+    origin: "https://dailyworldblog.com",
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );
-
-// handle preflight
-app.options("*", cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
