@@ -15,9 +15,14 @@ const app = express();
 app.use(helmet());
 app.use(morgan("dev"));
 app.set("etag", false);
+const allowedOrigins = [
+  "https://dailyworldblog.com",
+  "https://gray-goldfinch-802005.hostingersite.com",
+];
+
 app.use(
   cors({
-    origin: "https://dailyworldblog.com",
+    origin: allowedOrigins,
     credentials: true,
     allowedHeaders: [
       "Content-Type",
