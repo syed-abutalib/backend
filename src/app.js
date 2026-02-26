@@ -19,9 +19,7 @@ app.set("etag", false);
 // Updated CORS
 app.use(
   cors({
-    origin: "https://dailyworldblog.com", // frontend domain
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: "", // frontend domain
     credentials: true, // if you want cookies/auth
   })
 );
