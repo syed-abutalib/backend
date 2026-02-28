@@ -18,6 +18,7 @@ app.set("etag", false);
 const allowedOrigins = [
   "https://dailyworldblog.com",
   "https://gray-goldfinch-802005.hostingersite.com",
+  "http://localhost:3000"
 ];
 
 app.use(
