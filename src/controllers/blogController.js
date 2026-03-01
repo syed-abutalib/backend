@@ -1136,7 +1136,34 @@ export const getPublishedBlogs = async (req, res) => {
   }
 };
 
-// Get Single Blog by Slug
+// Helper function to clean HTML content
+function cleanHTMLContent(html) {
+  if (!html) return "";
+  
+  return html
+    // Decode Unicode escapes
+    .replace(/\\u003c/g, '<')
+    .replace(/\\u003e/g, '>')
+    .replace(/\\u0022/g, '"')
+    .replace(/\\u002f/g, '/')
+    .replace(/\\u0026/g, '&')
+    .replace(/\\u2022/g, '•') // bullet points
+    .replace(/\\u2026/g, '…') // ellipsis
+    
+    // Remove escape characters
+    .replace(/\\n/g, ' ')
+    .replace(/\\t/g, ' ')
+    .replace(/\\r/g, ' ')
+    
+    // Remove any leftover backslashes
+    .replace(/\\/g, '')
+    
+    // Clean up whitespace
+    .replace(/\s+/g, ' ')
+    .replace(/>\s+</g, '><')
+    .trim();
+}
+
 export const getBlogBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -1190,9 +1217,27 @@ export const getBlogBySlug = async (req, res) => {
       .select("title slug excerpt imageUrl readTime views createdAt")
       .sort({ views: -1 });
 
+    // Convert to object and clean all text fields
+    const cleanBlog = blog.toObject();
+    
+    // Clean description
+    if (cleanBlog.description) {
+      cleanBlog.description = cleanHTMLContent(cleanBlog.description);
+    }
+    
+    // Clean excerpt
+    if (cleanBlog.excerpt) {
+      cleanBlog.excerpt = cleanHTMLContent(cleanBlog.excerpt);
+    }
+    
+    // Clean title (just in case)
+    if (cleanBlog.title) {
+      cleanBlog.title = cleanBlog.title.replace(/\\/g, '').trim();
+    }
+
     res.status(200).json({
       success: true,
-      data: blog,
+      data: cleanBlog,
       related: relatedBlogs,
     });
   } catch (error) {
@@ -1204,7 +1249,6 @@ export const getBlogBySlug = async (req, res) => {
     });
   }
 };
-
 // Like/Unlike Blog
 export const toggleLikeBlog = async (req, res) => {
   try {
