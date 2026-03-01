@@ -1136,34 +1136,6 @@ export const getPublishedBlogs = async (req, res) => {
   }
 };
 
-// Helper function to clean HTML content
-function cleanHTMLContent(html) {
-  if (!html) return "";
-  
-  return html
-    // Decode Unicode escapes
-    .replace(/\\u003c/g, '<')
-    .replace(/\\u003e/g, '>')
-    .replace(/\\u0022/g, '"')
-    .replace(/\\u002f/g, '/')
-    .replace(/\\u0026/g, '&')
-    .replace(/\\u2022/g, '•') // bullet points
-    .replace(/\\u2026/g, '…') // ellipsis
-    
-    // Remove escape characters
-    .replace(/\\n/g, ' ')
-    .replace(/\\t/g, ' ')
-    .replace(/\\r/g, ' ')
-    
-    // Remove any leftover backslashes
-    .replace(/\\/g, '')
-    
-    // Clean up whitespace
-    .replace(/\s+/g, ' ')
-    .replace(/>\s+</g, '><')
-    .trim();
-}
-
 export const getBlogBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -1188,7 +1160,6 @@ export const getBlogBySlug = async (req, res) => {
       const userId = req.user?._id;
       const userRole = req.user?.role;
 
-      // Check if user is admin or owner
       if (
         !userId ||
         (userRole !== "admin" && blog.user._id.toString() !== userId.toString())
@@ -1206,7 +1177,7 @@ export const getBlogBySlug = async (req, res) => {
       await blog.save();
     }
 
-    // Get related blogs (same category, published only)
+    // Get related blogs
     const relatedBlogs = await Blog.find({
       category: blog.category,
       _id: { $ne: blog._id },
@@ -1217,28 +1188,30 @@ export const getBlogBySlug = async (req, res) => {
       .select("title slug excerpt imageUrl readTime views createdAt")
       .sort({ views: -1 });
 
-    // Convert to object and clean all text fields
+    // FIX: Clean the blog data before sending
     const cleanBlog = blog.toObject();
     
-    // Clean description
     if (cleanBlog.description) {
-      cleanBlog.description = cleanHTMLContent(cleanBlog.description);
+      cleanBlog.description = decodeHTMLEntities(cleanBlog.description);
     }
     
-    // Clean excerpt
     if (cleanBlog.excerpt) {
-      cleanBlog.excerpt = cleanHTMLContent(cleanBlog.excerpt);
+      cleanBlog.excerpt = decodeHTMLEntities(cleanBlog.excerpt);
     }
-    
-    // Clean title (just in case)
-    if (cleanBlog.title) {
-      cleanBlog.title = cleanBlog.title.replace(/\\/g, '').trim();
-    }
+
+    // Also clean related blogs if they have descriptions
+    const cleanRelatedBlogs = relatedBlogs.map(related => {
+      const cleanRelated = related.toObject();
+      if (cleanRelated.excerpt) {
+        cleanRelated.excerpt = decodeHTMLEntities(cleanRelated.excerpt);
+      }
+      return cleanRelated;
+    });
 
     res.status(200).json({
       success: true,
       data: cleanBlog,
-      related: relatedBlogs,
+      related: cleanRelatedBlogs,
     });
   } catch (error) {
     console.error("Get blog error:", error);
@@ -1249,6 +1222,48 @@ export const getBlogBySlug = async (req, res) => {
     });
   }
 };
+
+// Helper function to decode all HTML entities and Unicode escapes
+function decodeHTMLEntities(text) {
+  if (!text) return "";
+  
+  let decoded = text;
+  
+  // Handle double backslashes first
+  decoded = decoded.replace(/\\\\/g, '\\');
+  
+  // Decode Unicode escapes (with and without double backslash)
+  const unicodeMap = {
+    '\\\\u003c': '<',
+    '\\\\u003e': '>',
+    '\\\\u0022': '"',
+    '\\\\u002f': '/',
+    '\\\\u0026': '&',
+    '\\\\u2022': '•',
+    '\\\\u2026': '…',
+    '\\\\u2018': "'",
+    '\\\\u2019': "'",
+    '\\\\u201c': '"',
+    '\\\\u201d': '"',
+    '\\u003c': '<',
+    '\\u003e': '>',
+    '\\u0022': '"',
+    '\\u002f': '/',
+    '\\u0026': '&',
+  };
+  
+  for (const [escape, char] of Object.entries(unicodeMap)) {
+    decoded = decoded.replace(new RegExp(escape, 'g'), char);
+  }
+  
+  // Remove any remaining backslashes
+  decoded = decoded.replace(/\\/g, '');
+  
+  // Clean up whitespace
+  decoded = decoded.replace(/\s+/g, ' ').trim();
+  
+  return decoded;
+}
 // Like/Unlike Blog
 export const toggleLikeBlog = async (req, res) => {
   try {
