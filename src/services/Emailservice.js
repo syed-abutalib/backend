@@ -4,9 +4,8 @@ import nodemailer from "nodemailer";
 
 const GMAIL_IPV4 = '142.251.127.108';
 const GMAIL_HOST = 'smtp.gmail.com';
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    host: GMAIL_IPV4, // Use direct IPv4 address
+const transporter = nodemailer.createTransport({
+  host: GMAIL_IPV4, // Use direct IPv4 address
     port: 587,
     secure: false,
     auth: {
@@ -25,8 +24,7 @@ const createTransporter = () => {
     // Enable debugging
     debug: true,
     logger: true
-  });
-};
+});
 
 // Test transporter
 transporter.verify((error, success) => {
