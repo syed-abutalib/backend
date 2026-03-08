@@ -6,8 +6,8 @@ const GMAIL_IPV4 = '142.251.127.108';
 const GMAIL_HOST = 'smtp.gmail.com';
 const transporter = nodemailer.createTransport({
   host: GMAIL_IPV4, // Use direct IPv4 address
-    port: 587,
-    secure: false,
+    port: 466,
+    secure: true,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
