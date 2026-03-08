@@ -2,17 +2,31 @@ import dotenv from "dotenv";
 dotenv.config();
 import nodemailer from "nodemailer";
 
-
-// Create transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: process.env.SMTP_PORT || 587,
-  secure: process.env.SMTP_SECURE === "true",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+const GMAIL_IPV4 = '142.251.127.108';
+const GMAIL_HOST = 'smtp.gmail.com';
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    host: GMAIL_IPV4, // Use direct IPv4 address
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+    // Important: Tell nodemailer the actual hostname for TLS
+    tls: {
+      hostname: GMAIL_HOST, // This is critical for certificate validation
+      rejectUnauthorized: false, // Railway sometimes needs this
+      ciphers: 'SSLv3'
+    },
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 30000,
+    // Enable debugging
+    debug: true,
+    logger: true
+  });
+};
 
 // Test transporter
 transporter.verify((error, success) => {
