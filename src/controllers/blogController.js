@@ -87,6 +87,26 @@ export const getFAQsByBlogSlug = async (req, res) => {
   }
 };
 
+export const getAllFAQs = async (req, res) => {
+  try {
+    const faqs = await BlogFAQ.find({ isActive: true })
+      .select('blogId blogSlug questions isActive createdAt updatedAt')
+      .sort({ createdAt: -1 });
+    
+    res.status(200).json({
+      success: true,
+      count: faqs.length,
+      data: faqs,
+    });
+  } catch (error) {
+    console.error("Error fetching FAQs:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch FAQs",
+      error: error.message,
+    });
+  }
+};
 // Get FAQs by blog ID (Admin/Owner)
 export const getFAQsByBlogId = async (req, res) => {
   try {
