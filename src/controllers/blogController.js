@@ -1,4 +1,5 @@
 import Blog from "../models/Blog.js";
+import BlogFAQ from "../models/BlogFAQ.js";
 import slugify from "slugify";
 import {
   uploadToCloudinary,
@@ -39,6 +40,239 @@ const safeSlugify = (text) => {
 };
 
 // ================ CONTROLLER FUNCTIONS ================
+
+// ================ FAQ CONTROLLER FUNCTIONS ================
+
+// Get FAQs by blog slug (Public)
+export const getFAQsByBlogSlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    if (!slug) {
+      return res.status(400).json({
+        success: false,
+        message: "Blog slug is required",
+      });
+    }
+
+    const faq = await BlogFAQ.findOne({
+      blogSlug: slug,
+      isActive: true,
+    }).lean();
+
+    if (!faq) {
+      return res.status(200).json({
+        success: true,
+        data: null,
+        message: "No FAQs found for this blog",
+      });
+    }
+
+    // Sort questions by order
+    if (faq.questions && faq.questions.length > 0) {
+      faq.questions.sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+
+    res.status(200).json({
+      success: true,
+      data: faq,
+    });
+  } catch (error) {
+    console.error("Get FAQs by blog slug error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+// Get FAQs by blog ID (Admin/Owner)
+export const getFAQsByBlogId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?._id;
+    const userRole = req.user?.role;
+
+    // First verify that the user has access to this blog
+    const blog = await Blog.findById(id);
+    
+    if (!blog || blog.isDeleted) {
+      return res.status(404).json({
+        success: false,
+        message: "Blog not found",
+      });
+    }
+
+    // Check authorization
+    const isOwner = blog.user.toString() === userId?.toString();
+    if (userRole !== "admin" && !isOwner) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to view FAQs for this blog",
+      });
+    }
+
+    const faq = await BlogFAQ.findOne({
+      blogId: id,
+    }).lean();
+
+    res.status(200).json({
+      success: true,
+      data: faq || null,
+    });
+  } catch (error) {
+    console.error("Get FAQs by blog ID error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+// Create or Update FAQs for a blog (Admin/Owner)
+export const upsertBlogFAQs = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { questions } = req.body;
+    const userId = req.user?._id;
+    const userRole = req.user?.role;
+
+    // Validate required fields
+    if (!questions || !Array.isArray(questions)) {
+      return res.status(400).json({
+        success: false,
+        message: "Questions array is required",
+      });
+    }
+
+    // Validate each question
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      if (!q.question || !q.question.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: `Question ${i + 1} has empty question text`,
+        });
+      }
+      if (!q.answer || !q.answer.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: `Question ${i + 1} has empty answer`,
+        });
+      }
+    }
+
+    // Find the blog to verify ownership
+    const blog = await Blog.findById(id);
+    
+    if (!blog || blog.isDeleted) {
+      return res.status(404).json({
+        success: false,
+        message: "Blog not found",
+      });
+    }
+
+    // Check authorization
+    const isOwner = blog.user.toString() === userId?.toString();
+    if (userRole !== "admin" && !isOwner) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to manage FAQs for this blog",
+      });
+    }
+
+    // Prepare questions with order
+    const formattedQuestions = questions.map((q, index) => ({
+      question: q.question.trim(),
+      answer: q.answer.trim(),
+      order: q.order !== undefined ? q.order : index,
+    }));
+
+    // Upsert FAQ document
+    const faq = await BlogFAQ.findOneAndUpdate(
+      { blogId: id },
+      {
+        blogId: id,
+        blogSlug: blog.slug,
+        questions: formattedQuestions,
+        isActive: true,
+        updatedAt: new Date(),
+      },
+      {
+        upsert: true,
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "FAQs saved successfully",
+      data: faq,
+    });
+  } catch (error) {
+    console.error("Upsert FAQs error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+// Delete FAQs for a blog (Admin/Owner)
+export const deleteBlogFAQs = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?._id;
+    const userRole = req.user?.role;
+
+    // Find the blog to verify ownership
+    const blog = await Blog.findById(id);
+    
+    if (!blog || blog.isDeleted) {
+      return res.status(404).json({
+        success: false,
+        message: "Blog not found",
+      });
+    }
+
+    // Check authorization
+    const isOwner = blog.user.toString() === userId?.toString();
+    if (userRole !== "admin" && !isOwner) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to delete FAQs for this blog",
+      });
+    }
+
+    const result = await BlogFAQ.deleteOne({ blogId: id });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No FAQs found for this blog",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "FAQs deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete FAQs error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+
+
 
 // Create Blog (Auto goes to pending for non-admin users)
 export const createBlog = async (req, res) => {
