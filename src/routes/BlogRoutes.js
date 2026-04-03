@@ -21,7 +21,6 @@ import {
   getBlogById,
   adminGetAllBlogs,
   adminUpdateBlog,
-  getBlogBySlug,
   getFAQsByBlogSlug,
   getFAQsByBlogId,
   upsertBlogFAQs,
@@ -38,8 +37,7 @@ const router = express.Router();
 // ================ PUBLIC ROUTES ================
 router.get("/published", getPublishedBlogs);
 router.get("/slug/:slug", getBlogBySlug);
-router.get('/blogs/slug/:slug', getBlogBySlug);
-router.get('/blogs/faq/:slug', getFAQsByBlogSlug); // Public FAQ endpoint
+router.get('/faq/:slug', getFAQsByBlogSlug); // Public FAQ endpoint
 // ================ PROTECTED ROUTES (REQUIRE AUTH) ================
 router.use(AuthMiddleware);
 
