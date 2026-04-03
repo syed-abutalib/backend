@@ -44,6 +44,27 @@ const safeSlugify = (text) => {
 // ================ FAQ CONTROLLER FUNCTIONS ================
 
 // Get FAQs by blog slug (Public)
+export const debugFAQsDirect = async (req, res) => {
+  try {
+    // Get all documents in the collection
+    const allDocs = await BlogFAQ.find({});
+    
+    // Check collection info
+    const collectionName = BlogFAQ.collection.name;
+    
+    res.status(200).json({
+      collectionName: collectionName,
+      totalDocuments: allDocs.length,
+      documents: allDocs,
+      sampleDocument: allDocs[0] || null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      stack: error.stack,
+    });
+  }
+};
 export const getFAQsByBlogSlug = async (req, res) => {
   try {
     const { slug } = req.params;
