@@ -21,6 +21,11 @@ import {
   getBlogById,
   adminGetAllBlogs,
   adminUpdateBlog,
+  getBlogBySlug,
+  getFAQsByBlogSlug,
+  getFAQsByBlogId,
+  upsertBlogFAQs,
+  deleteBlogFAQs,
 } from "../controllers/blogController.js";
 import {
   AuthMiddleware,
@@ -33,7 +38,8 @@ const router = express.Router();
 // ================ PUBLIC ROUTES ================
 router.get("/published", getPublishedBlogs);
 router.get("/slug/:slug", getBlogBySlug);
-
+router.get('/blogs/slug/:slug', getBlogBySlug);
+router.get('/blogs/faq/:slug', getFAQsByBlogSlug); // Public FAQ endpoint
 // ================ PROTECTED ROUTES (REQUIRE AUTH) ================
 router.use(AuthMiddleware);
 
@@ -60,7 +66,10 @@ router.delete("/:id", deleteBlog);
 
 // ================ ADMIN ONLY ROUTES ================
 router.use(AdminMiddleware);
-
+// Protected routes (require authentication)
+router.get('/blogs/:id/faq',  getFAQsByBlogId);
+router.put('/blogs/:id/faq',  upsertBlogFAQs);
+router.delete('/blogs/:id/faq', deleteBlogFAQs)
 // Admin blog management
 router.get("/", adminGetAllBlogs); // Admin gets all blogs with filters
 router.get("/pending", getPendingBlogs);
