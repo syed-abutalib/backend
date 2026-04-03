@@ -25,6 +25,7 @@ import {
   getFAQsByBlogId,
   upsertBlogFAQs,
   deleteBlogFAQs,
+  getAllFAQs
 } from "../controllers/blogController.js";
 import {
   AuthMiddleware,
@@ -37,6 +38,7 @@ const router = express.Router();
 // ================ PUBLIC ROUTES ================
 router.get("/published", getPublishedBlogs);
 router.get("/slug/:slug", getBlogBySlug);
+router.get('/faqs', getAllFAQs);                    // Get all FAQs
 router.get('/faq/:slug', getFAQsByBlogSlug); // Public FAQ endpoint
 // ================ PROTECTED ROUTES (REQUIRE AUTH) ================
 router.use(AuthMiddleware);
